@@ -4,12 +4,18 @@
     // File Layout
     "rootDir": "./src",
     "outDir": "./dist",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
+    "exclude": ["node_modules", "dist"],
+    "include": ["src/**/*"],
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
+    "allowJs": true,
+    "esModuleInterop": true,
     // For nodejs:
     "lib": ["esnext"],
     "types": ["node"],
@@ -26,7 +32,7 @@
 
     // Style Options
     // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
+    "noImplicitOverride": true,
     // "noUnusedLocals": true,
     // "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true,
@@ -34,7 +40,6 @@
 
     // Recommended Options
     "strict": true,
-    "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
