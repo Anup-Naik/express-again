@@ -1,0 +1,64 @@
+import type { UserProfile } from '@prisma/client';
+import bcrypt from 'bcrypt';
+import type { Response } from 'express';
+import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+
+dotenv.config();
+
+/**
+ * Hash a password.
+ *
+ * @param password The password to hash.
+ * @returns The hashed password.
+ */
+export async function hashPassword(password: string) {
+  return await bcrypt.hash(password, 10);
+}
+
+/**
+ * Compare a password with a hashed password.
+ *
+ * @param password The password to compare.
+ * @param hashedPassword The hashed password to compare against.
+ * @returns True if the password is valid, false otherwise.
+ */
+export async function getIsPasswordValid(
+  password: string,
+  hashedPassword: string,
+) {
+  return await bcrypt.compare(password, hashedPassword);
+}
+
+/**
+ * Generate a JWT token. Make sure to define process.env.JWT_SECRET in your
+ * environment.
+ *
+ * @param userProfile The user profile to generate the token for.
+ * @returns The generated JWT token.
+ */
+export function generateJwtToken(userProfile: UserProfile) {
+  const tokenPayload: TokenPayload = {
+    id: userProfile.id,
+    email: userProfile.email,
+  };
+  return jwt.sign(tokenPayload, process.env.JWT_SECRET as string, {
+    expiresIn: 60 * 60 * 24 * 365, // 1 year
+  });
+}
+
+export const JWT_COOKIE_NAME = 'jwt';
+
+/**
+ * Set the JWT cookie.
+ *
+ * @param response The response object to set the cookie on.
+ * @param token The JWT token to set.
+ */
+export function setJwtCookie(response: Response, token: string) {
+  response.cookie(JWT_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // use secure cookies in production
+    sameSite: 'strict',
+  });
+}
