@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { describe, expect, test } from 'vitest';
 
-import { buildApp } from '~/app.js';
+import { buildApp } from '../../app.js';
 
 describe('/api/v1/health-check', () => {
   test('given: a GET request, should: return a 200 with a message, timestamp and uptime', async () => {
