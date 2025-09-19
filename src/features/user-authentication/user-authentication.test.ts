@@ -3,7 +3,6 @@ import request from 'supertest';
 import { describe, expect, onTestFinished, test } from 'vitest';
 
 import { buildApp } from '../../app.js';
-
 import { createPopulatedUserProfile } from '../user-profile/user-profile-factories.js';
 import {
   deleteUserProfileFromDatabaseById,

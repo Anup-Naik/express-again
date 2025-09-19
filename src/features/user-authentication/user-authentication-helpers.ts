@@ -1,7 +1,7 @@
 import type { UserProfile } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import type { Response } from 'express';
 import dotenv from 'dotenv';
+import type { Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 dotenv.config();

@@ -2,7 +2,6 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 
 import { validateBody } from '../../middleware/validate.js';
-
 import { retrieveUserProfileFromDatabaseByEmail } from '../user-profile/user-profile-model.js';
 import {
   generateJwtToken,
