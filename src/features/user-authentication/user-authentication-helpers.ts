@@ -1,7 +1,8 @@
 import type { UserProfile } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
+import type { JwtPayload } from 'jsonwebtoken';
 import jwt from 'jsonwebtoken';
 
 dotenv.config();
@@ -38,7 +39,7 @@ export async function getIsPasswordValid(
  * @returns The generated JWT token.
  */
 export function generateJwtToken(userProfile: UserProfile) {
-  const tokenPayload: TokenPayload = {
+  const tokenPayload: JwtPayload = {
     id: userProfile.id,
     email: userProfile.email,
   };
@@ -61,4 +62,60 @@ export function setJwtCookie(response: Response, token: string) {
     secure: process.env.NODE_ENV === 'production', // use secure cookies in production
     sameSite: 'strict',
   });
+}
+
+/**
+ * Modifies the response to instruct the browser to delete the JWT cookie.
+ *
+ * @param response The response object to clear the cookie from.
+ */
+export function clearJwtCookie(response: Response) {
+  response.clearCookie(JWT_COOKIE_NAME, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+}
+
+/**
+ * Check if a token is valid.
+ *
+ * @param token The token to check.
+ * @returns True if the token is valid, false otherwise.
+ */
+const isTokenValid = (
+  token: jwt.JwtPayload | string,
+): token is TokenPayload => {
+  if (
+    typeof token === 'object' &&
+    token !== null &&
+    'id' in token &&
+    'email' in token
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Get the JWT token from the cookie.
+ *
+ * @param request The request object to get the cookie from.
+ * @returns The JWT token from the cookie.
+ */
+export function getJwtTokenFromCookie(request: Request) {
+  const token = request.cookies[JWT_COOKIE_NAME];
+
+  if (!token) {
+    throw new Error('No token found');
+  }
+
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET as string);
+
+  if (isTokenValid(decodedToken)) {
+    return decodedToken;
+  }
+
+  throw new Error('Invalid token payload');
 }

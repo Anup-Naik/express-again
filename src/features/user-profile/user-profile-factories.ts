@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { createId } from '@paralleldrive/cuid2';
 import type { UserProfile } from '@prisma/client';
 
-import type { Factory } from '~/utils/types.js';
+import type { Factory } from '../../utils/types.js';
 
 export const createPopulatedUserProfile: Factory<UserProfile> = ({
   id = createId(),

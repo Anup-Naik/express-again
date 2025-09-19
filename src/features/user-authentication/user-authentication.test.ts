@@ -6,6 +6,7 @@ import { buildApp } from '../../app.js';
 import { createPopulatedUserProfile } from '../user-profile/user-profile-factories.js';
 import {
   deleteUserProfileFromDatabaseById,
+  retrieveUserProfileFromDatabaseByEmail,
   saveUserProfileToDatabase,
 } from '../user-profile/user-profile-model.js';
 import { hashPassword } from './user-authentication-helpers.js';
@@ -80,20 +81,99 @@ describe('/api/v1/login', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          message: 'Required',
+          message: 'Invalid input: expected string, received undefined',
           path: ['email'],
-          received: 'undefined',
         },
         {
           code: 'invalid_type',
           expected: 'string',
-          message: 'Required',
+          message: 'Invalid input: expected string, received undefined',
           path: ['password'],
-          received: 'undefined',
         },
       ],
     };
 
     expect(actual).toEqual(expected);
+  });
+});
+
+describe('/api/v1/register', () => {
+  test('given: valid registration data, should: create a user and return a 201', async () => {
+    const app = buildApp();
+    const email = 'test@example.com';
+    const password = 'password123';
+
+    const { body: actual } = await request(app)
+      .post('/api/v1/register')
+      .send({ email, password })
+      .expect(201);
+
+    expect(actual).toEqual({ message: 'User registered successfully' });
+
+    // Verify that the user was created in the database
+    const createdUser = await retrieveUserProfileFromDatabaseByEmail(email);
+    expect(createdUser).toBeDefined();
+    expect(createdUser?.email).toEqual(email);
+
+    // Clean up
+    if (createdUser) {
+      await deleteUserProfileFromDatabaseById(createdUser.id);
+    }
+  });
+
+  test('given: an email that already exists, should: return a 409', async () => {
+    const password = createId();
+    const { app, userProfile } = await setup({ password });
+
+    const { body: actual } = await request(app)
+      .post('/api/v1/register')
+      .send({ email: userProfile.email, password: 'newpassword123' })
+      .expect(409);
+
+    expect(actual).toEqual({ message: 'User already exists' });
+  });
+
+  test('given: invalid registration data, should: return a 400', async () => {
+    const app = buildApp();
+
+    const { body: actual } = await request(app)
+      .post('/api/v1/register')
+      .send({})
+      .expect(400);
+
+    expect(actual).toEqual({
+      message: 'Bad Request',
+      errors: [
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          message: 'Invalid input: expected string, received undefined',
+          path: ['email'],
+        },
+        {
+          code: 'invalid_type',
+          expected: 'string',
+          message: 'Invalid input: expected string, received undefined',
+          path: ['password'],
+        },
+      ],
+    });
+  });
+});
+
+describe('/api/v1/logout', () => {
+  test('given: any POST request, should: clear the JWT cookie and return a 200', async () => {
+    const { app } = await setup();
+
+    const response = await request(app).post('/api/v1/logout').expect(200);
+
+    expect(response.body).toEqual({ message: 'Logged out successfully' });
+
+    // Verify that the cookie is cleared
+    const cookies = response.headers['set-cookie'] as unknown as string[];
+    expect(cookies).toBeDefined();
+    expect(cookies).toEqual([
+      'jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Strict',
+    ]);
   });
 });

@@ -2,10 +2,15 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 
 import { validateBody } from '../../middleware/validate.js';
-import { retrieveUserProfileFromDatabaseByEmail } from '../user-profile/user-profile-model.js';
 import {
+  retrieveUserProfileFromDatabaseByEmail,
+  saveUserProfileToDatabase,
+} from '../user-profile/user-profile-model.js';
+import {
+  clearJwtCookie,
   generateJwtToken,
   getIsPasswordValid,
+  hashPassword,
   setJwtCookie,
 } from './user-authentication-helpers.js';
 
@@ -44,4 +49,42 @@ export async function login(request: Request, response: Response) {
     // If user not found, return an Unauthorized error.
     response.status(401).json({ message: 'Invalid credentials' });
   }
+}
+
+export async function register(request: Request, response: Response) {
+  // Validate the request body to contain a valid email and a password of
+  // minimum 8 characters.
+  const body = await validateBody(
+    z.object({
+      email: z.string().email(),
+      password: z.string().min(8),
+    }),
+    request,
+    response,
+  );
+
+  // Check if a user with this email already exists.
+  const existingUser = await retrieveUserProfileFromDatabaseByEmail(body.email);
+
+  if (existingUser) {
+    response.status(409).json({ message: 'User already exists' });
+  } else {
+    // Hash the password and create the user profile.
+    const hashedPassword = await hashPassword(body.password);
+    const user = await saveUserProfileToDatabase({
+      email: body.email,
+      hashedPassword,
+    });
+
+    const token = generateJwtToken(user);
+    setJwtCookie(response, token);
+
+    response.status(201).json({ message: 'User registered successfully' });
+  }
+}
+
+export async function logout(request: Request, response: Response) {
+  clearJwtCookie(response);
+
+  response.status(200).json({ message: 'Logged out successfully' });
 }
