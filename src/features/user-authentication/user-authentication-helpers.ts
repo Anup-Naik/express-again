@@ -83,9 +83,7 @@ export function clearJwtCookie(response: Response) {
  * @param token The token to check.
  * @returns True if the token is valid, false otherwise.
  */
-const isTokenValid = (
-  token: jwt.JwtPayload | string,
-): token is TokenPayload => {
+const isTokenValid = (token: jwt.JwtPayload | string): token is JwtPayload => {
   if (
     typeof token === 'object' &&
     token !== null &&

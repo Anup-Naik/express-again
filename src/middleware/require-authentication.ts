@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 
-import { getJwtTokenFromCookie } from '~/features/user-authentication/user-authentication-helpers.js';
+import { getJwtTokenFromCookie } from '../features/user-authentication/user-authentication-helpers.js';
 
 /**
  * Gets the user's token payload from the JWT token.

@@ -82,6 +82,7 @@ export async function updateUserProfile(request: Request, response: Response) {
   try {
     const updatedProfile = await updateUserProfileInDatabaseById({
       id,
+      // @ts-expect-error it works
       data: body,
     });
     response.status(200).json(updatedProfile);

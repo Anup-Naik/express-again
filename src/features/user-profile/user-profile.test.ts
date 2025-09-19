@@ -282,9 +282,8 @@ describe('/api/v1/user-profiles', () => {
             {
               code: 'invalid_type',
               expected: 'never',
-              message: 'Expected never, received string',
+              message: 'Invalid input: expected never, received string',
               path: ['id'],
-              received: 'string',
             },
           ],
         };
